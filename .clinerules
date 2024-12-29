@@ -1,0 +1,35 @@
+## General Guidelines
+    - prefer pnpm for installs
+    - focus on code changes, optimization and new code generation
+    - Focus on meaningful code changes specific to user requests. 
+## Next JS App Guidelines
+    - Follow clean coding principles
+    - Code should be type safe
+    - Use professional and clear comments where helpful
+    - use shadcn components wherever possible
+    - prefer lucide react icons
+    - Assume next-themes is implemented and dark mode is default
+    - Use tailwind classes
+    - Prefer tailwind colors over custom css colors
+    - Assume app uses src dir 
+    - Assume app uses app router
+    - Assume all components must look good in either dark or light mode
+
+## Next JS App Architecture Guidelines
+    - Prefer feature module pattern: /src/app/features/[feature-name]
+    - Use Repository, Service, Hooks pattern where appropriate
+    - Repositories and Services should implement interfaces
+    - Use Zod for type inference and validation where appropriate
+    - assume mock data should be generated in suffecient quantity to thouroughly test and review the feature requested. A mock data repository is the suggested approach.
+    
+```
+FEATURE FOLDER EXAMPLE
+src/app/features/[feature-name]/
+├── components/
+├── hooks/
+├── repository/
+├── service/
+├── types/
+└── utils/
+```
+
