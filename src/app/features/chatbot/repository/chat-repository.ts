@@ -8,6 +8,7 @@ let messages: Message[] = [
     content: "Hello! How can I help you today?",
     role: "assistant",
     timestamp: new Date(),
+    isGreeting: true,
   },
 ];
 
@@ -33,6 +34,7 @@ export class ChatRepository implements IChatRepository {
         content: "",
         role: "assistant",
         timestamp: new Date(),
+        isGreeting: false,
       };
       messages = [...messages, initialAssistantMessage];
 

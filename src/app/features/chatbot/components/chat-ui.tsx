@@ -5,15 +5,17 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Copy, Download, Check } from "lucide-react";
 import { useChatContext } from "./chat-provider";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { MessageContent } from "./message-content";
 import { Message } from "../types/types";
+import { copyToClipboard, downloadMarkdown } from "../utils/message-actions";
 
 export function ChatUI() {
   const [input, setInput] = useState("");
+  const [hasCopied, setHasCopied] = useState(false);
   const { messages, isLoading, sendMessage } = useChatContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -43,6 +45,40 @@ export function ChatUI() {
     }
   };
 
+  const lastAssistantMessage = messages
+    .slice()
+    .reverse()
+    .find((msg) => msg.role === "assistant" && !msg.isGreeting);
+
+  const handleCopy = async () => {
+    if (!lastAssistantMessage) return;
+    const success = await copyToClipboard(lastAssistantMessage.content);
+    if (success) {
+      setHasCopied(true);
+      toast({
+        description: "Copied to clipboard",
+      });
+      setTimeout(() => setHasCopied(false), 2000);
+    } else {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
+  };
+
+  const handleDownload = () => {
+    if (!lastAssistantMessage) return;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadMarkdown(
+      lastAssistantMessage.content,
+      `assistant-message-${timestamp}.md`
+    );
+    toast({
+      description: "Downloaded markdown file",
+    });
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timeoutId);
@@ -67,6 +103,7 @@ export function ChatUI() {
                   <MessageContent
                     content={message.content}
                     isUser={message.role === "user"}
+                    isGreeting={message.isGreeting}
                   />
                 </div>
               ))}
@@ -84,20 +121,56 @@ export function ChatUI() {
                   className="flex-1"
                   disabled={isLoading}
                 />
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
+                <div className="flex gap-1">
+                  {lastAssistantMessage && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={handleCopy}
+                        disabled={isLoading}
+                      >
+                        {hasCopied ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">
+                          {hasCopied ? "Copied" : "Copy last response"}
+                        </span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={handleDownload}
+                        disabled={isLoading}
+                      >
+                        <Download className="h-4 w-4" />
+                        <span className="sr-only">
+                          Download last response as markdown
+                        </span>
+                      </Button>
+                    </>
                   )}
-                  <span className="sr-only">Send message</span>
-                </Button>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">Send message</span>
+                  </Button>
+                </div>
               </form>
             </div>
           </div>

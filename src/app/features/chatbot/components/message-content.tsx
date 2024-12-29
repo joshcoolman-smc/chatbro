@@ -6,8 +6,47 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { tomorrow } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { Button } from "@/components/ui/button";
+import { Download, Copy, Check } from "lucide-react";
+import { useState } from "react";
+import { copyToClipboard, downloadMarkdown } from "../utils/message-actions";
+import { useToast } from "@/hooks/use-toast";
 
-export function MessageContent({ content, isUser }: MessageContentProps) {
+export function MessageContent({
+  content,
+  isUser,
+  isGreeting,
+}: MessageContentProps) {
+  const [hasCopied, setHasCopied] = useState(false);
+  const { toast } = useToast();
+
+  const handleCopy = async () => {
+    const success = await copyToClipboard(content);
+    if (success) {
+      setHasCopied(true);
+      toast({
+        description: "Copied to clipboard",
+      });
+      setTimeout(() => setHasCopied(false), 2000);
+    } else {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
+  };
+
+  const handleDownload = () => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const prefix = isUser ? "user" : "assistant";
+    downloadMarkdown(content, `${prefix}-message-${timestamp}.md`);
+    toast({
+      description: "Downloaded markdown file",
+    });
+  };
+
+  const showActions = !isUser && !isGreeting;
+
   return (
     <div className="flex flex-col gap-2 w-full">
       <div
@@ -135,6 +174,34 @@ export function MessageContent({ content, isUser }: MessageContentProps) {
           {content}
         </ReactMarkdown>
       </div>
+      {showActions && (
+        <div className="flex justify-end gap-1 mt-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleCopy}
+          >
+            {hasCopied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {hasCopied ? "Copied" : "Copy message"}
+            </span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleDownload}
+          >
+            <Download className="h-4 w-4" />
+            <span className="sr-only">Download as markdown</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

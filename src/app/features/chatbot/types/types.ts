@@ -3,11 +3,13 @@ export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp?: Date;
+  isGreeting?: boolean;
 }
 
 export interface MessageContentProps {
   content: string;
   isUser: boolean;
+  isGreeting?: boolean;
 }
 
 export interface IChatRepository {
